@@ -35,9 +35,9 @@ export default function EncounterHeatMap({ locations }: EncounterHeatMapProps) {
 
     // Initialize map
     try {
-      // Default center to Grossmont/La Mesa, CA
-      const defaultCenter: [number, number] = [-117.0231, 32.7678]
-      const defaultZoom = 12
+      // Default center to East County San Diego (El Cajon area)
+      const defaultCenter: [number, number] = [-116.9625, 32.7948]
+      const defaultZoom = 10
 
       // If we have locations, center on the first one
       const center: [number, number] =

@@ -40,10 +40,10 @@ export default function MapPicker({
 
     mapboxgl.accessToken = accessToken
 
-    // Initialize map centered on Grossmont/La Mesa or provided coordinates
+    // Initialize map centered on East County San Diego or provided coordinates
     const center: [number, number] = initialLatitude && initialLongitude
       ? [initialLongitude, initialLatitude]
-      : [-117.0231, 32.7678] // Grossmont/La Mesa, CA
+      : [-116.9625, 32.7948] // East County - El Cajon, CA
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
