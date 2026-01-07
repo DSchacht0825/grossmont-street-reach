@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export type UserRole = 'admin' | 'field_worker'
 
@@ -25,7 +26,9 @@ export async function isAdmin(): Promise<boolean> {
       return false
     }
 
-    const { data: profile, error: profileError } = await supabase
+    // Use admin client to bypass RLS
+    const adminClient = createAdminClient()
+    const { data: profile, error: profileError } = await adminClient
       .from('user_profiles')
       .select('role')
       .eq('id', user.id)
