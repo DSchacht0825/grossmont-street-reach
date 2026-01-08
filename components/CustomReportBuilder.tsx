@@ -99,6 +99,7 @@ interface GeneratedReport {
     highUtilizerContacts: number
     programExits: number
     returnedToActive: number
+    showerTrailerCount: number
   }
   breakdowns: {
     matByProvider: Record<string, number>
@@ -151,6 +152,7 @@ export default function CustomReportBuilder({
   const [includeRefusedShelter, setIncludeRefusedShelter] = useState(true)
   const [includeHighUtilizerCount, setIncludeHighUtilizerCount] = useState(true)
   const [includeReturnedToActive, setIncludeReturnedToActive] = useState(true)
+  const [includeShowerTrailer, setIncludeShowerTrailer] = useState(true)
   const [includeByNameList, setIncludeByNameList] = useState(false)
   const [includeInteractionsDetail, setIncludeInteractionsDetail] = useState(false)
 
@@ -296,6 +298,7 @@ export default function CustomReportBuilder({
       const matReferrals = filteredEncounters.filter(e => e.mat_referral).length
       const detoxReferrals = filteredEncounters.filter(e => e.detox_referral).length
       const totalReferrals = matReferrals + detoxReferrals
+      const showerTrailerCount = filteredEncounters.filter(e => e.shower_trailer).length
 
       // Count unique persons who have at least one high utilizer encounter
       const highUtilizerPersonIds = new Set(
@@ -512,6 +515,14 @@ export default function CustomReportBuilder({
           'Metric': 'Fentanyl Test Strips',
           'Value': fentanylTestStrips,
           'Description': 'Total distributed',
+        })
+      }
+
+      if (includeShowerTrailer) {
+        reportData.push({
+          'Metric': 'Shower Trailer',
+          'Value': showerTrailerCount,
+          'Description': 'Total showers provided',
         })
       }
 
@@ -963,6 +974,7 @@ export default function CustomReportBuilder({
           highUtilizerContacts,
           programExits,
           returnedToActive,
+          showerTrailerCount,
         },
         breakdowns: {
           matByProvider,
@@ -1004,7 +1016,7 @@ export default function CustomReportBuilder({
   }
 
   const allUnchecked = !includeClientsServed && !includeServiceInteractions &&
-                       !includeNaloxone && !includeFentanylStrips &&
+                       !includeNaloxone && !includeFentanylStrips && !includeShowerTrailer &&
                        !includeTotalReferrals && !includeReferralBreakdown &&
                        !includeHousingPlacements && !includePlacements &&
                        !includeRefusedShelter && !includeHighUtilizerCount && !includeReturnedToActive &&
@@ -1110,6 +1122,16 @@ export default function CustomReportBuilder({
               className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
             />
             <span className="text-sm text-gray-700">Fentanyl Test Strips</span>
+          </label>
+
+          <label className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+            <input
+              type="checkbox"
+              checked={includeShowerTrailer}
+              onChange={(e) => setIncludeShowerTrailer(e.target.checked)}
+              className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+            />
+            <span className="text-sm text-gray-700">Shower Trailer</span>
           </label>
 
           <label className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
@@ -1486,6 +1508,19 @@ export default function CustomReportBuilder({
                   >
                     <p className="text-sm text-gray-600 font-medium">Fentanyl Test Strips</p>
                     <p className="text-3xl font-bold text-yellow-600 mt-1">{generatedReport.metrics.fentanylTestStrips}</p>
+                    <p className="text-xs text-gray-500 mt-1">Click for details</p>
+                  </div>
+                )}
+                {includeShowerTrailer && (
+                  <div
+                    onClick={() => {
+                      setDetailModalType('showerTrailer')
+                      setShowDetailModal(true)
+                    }}
+                    className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-lg p-4 border border-cyan-200 cursor-pointer hover:shadow-lg transition-shadow"
+                  >
+                    <p className="text-sm text-gray-600 font-medium">Shower Trailer</p>
+                    <p className="text-3xl font-bold text-cyan-600 mt-1">{generatedReport.metrics.showerTrailerCount}</p>
                     <p className="text-xs text-gray-500 mt-1">Click for details</p>
                   </div>
                 )}
@@ -1988,6 +2023,7 @@ export default function CustomReportBuilder({
                 {detailModalType === 'serviceInteractions' && 'Service Interactions Details'}
                 {detailModalType === 'naloxone' && 'Naloxone Distribution Details'}
                 {detailModalType === 'fentanylStrips' && 'Fentanyl Test Strips Details'}
+                {detailModalType === 'showerTrailer' && 'Shower Trailer Details'}
                 {detailModalType === 'referrals' && 'Referrals Breakdown'}
                 {detailModalType === 'programExits' && 'Program Exits Breakdown'}
                 {detailModalType === 'housingPlacements' && 'Housing Placements Details'}
@@ -2175,6 +2211,46 @@ export default function CustomReportBuilder({
                     ) : (
                       <div className="text-center py-8 text-gray-500">
                         <p>No fentanyl test strips distributed in this date range.</p>
+                      </div>
+                    )
+                  })()}
+                </div>
+              )}
+
+              {/* Shower Trailer Details */}
+              {detailModalType === 'showerTrailer' && (
+                <div className="space-y-4">
+                  <div className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-lg p-4 border-2 border-cyan-200 mb-6">
+                    <p className="text-sm text-gray-600 font-medium">Total Shower Trailer Uses</p>
+                    <p className="text-4xl font-bold text-cyan-600 mt-1">{generatedReport.metrics.showerTrailerCount}</p>
+                    <p className="text-xs text-gray-500 mt-2">Showers provided in this date range</p>
+                  </div>
+
+                  {(() => {
+                    const showerEncounters = generatedReport.filteredEncounters.filter(e => e.shower_trailer)
+                    return showerEncounters.length > 0 ? (
+                      <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4">
+                        <h5 className="font-semibold text-cyan-700 text-lg mb-3">Shower Details</h5>
+                        <div className="space-y-2 max-h-96 overflow-y-auto">
+                          {showerEncounters.map((encounter, index) => {
+                            const person = persons.find(p => p.id === encounter.person_id)
+                            return (
+                              <div key={index} className="bg-white rounded-lg p-3 border border-cyan-100 shadow-sm flex justify-between items-center">
+                                <div>
+                                  <p className="font-semibold text-gray-900">{person?.first_name} {person?.last_name}</p>
+                                  <p className="text-sm text-gray-500">{encounter.outreach_location}</p>
+                                </div>
+                                <div className="text-right text-sm">
+                                  <p className="text-gray-600">{new Date(encounter.service_date).toLocaleDateString()}</p>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <p>No shower trailer uses in this date range.</p>
                       </div>
                     )
                   })()}
