@@ -11,6 +11,7 @@ import DuplicateManager from '@/components/DuplicateManager'
 import LogoutButton from '@/components/LogoutButton'
 import ProgramExitsSection from '@/components/ProgramExitsSection'
 import MetricsGrid from '@/components/MetricsGrid'
+import PlacementBreakdownCard from '@/components/PlacementBreakdownCard'
 
 export default async function DashboardPage({
   searchParams,
@@ -263,7 +264,7 @@ export default async function DashboardPage({
       }, {} as Record<string, number>),
   }
 
-  // Placement breakdown by location
+  // Placement breakdown by location (with counts)
   const placementBreakdown = allEncounters
     .filter(e => e.placement_made)
     .reduce((acc, e) => {
@@ -273,6 +274,35 @@ export default async function DashboardPage({
       acc[location] = (acc[location] || 0) + 1
       return acc
     }, {} as Record<string, number>)
+
+  // Create a map of person_id to person for quick lookup
+  const personMap = allPersons.reduce((acc, person) => {
+    acc[person.id] = person
+    return acc
+  }, {} as Record<string, PersonData>)
+
+  // Placement breakdown with client details
+  type PlacementClient = { id: string; name: string; date: string }
+  const placementsByLocation = allEncounters
+    .filter(e => e.placement_made)
+    .reduce((acc, e) => {
+      const location = e.placement_location === 'Other'
+        ? (e.placement_location_other || 'Other')
+        : (e.placement_location || 'Unknown')
+
+      const person = personMap[e.person_id]
+      const clientInfo: PlacementClient = {
+        id: e.person_id,
+        name: person ? `${person.first_name} ${person.last_name}` : 'Unknown Client',
+        date: format(new Date(e.service_date), 'MMM dd, yyyy'),
+      }
+
+      if (!acc[location]) {
+        acc[location] = []
+      }
+      acc[location].push(clientInfo)
+      return acc
+    }, {} as Record<string, PlacementClient[]>)
 
   // GPS coordinates for heat map
   const encounterLocations = allEncounters
@@ -531,16 +561,19 @@ export default async function DashboardPage({
           <div className="mb-4">
             <p className="text-3xl font-bold text-green-600">{metrics.placementsMade}</p>
             <p className="text-sm text-gray-500">Total placements in this period</p>
+            <p className="text-xs text-gray-400 mt-1">Click a location to see placed clients</p>
           </div>
-          {Object.keys(placementBreakdown).length > 0 ? (
+          {Object.keys(placementsByLocation).length > 0 ? (
             <dl className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {Object.entries(placementBreakdown)
-                .sort(([, a], [, b]) => b - a)
-                .map(([location, count]) => (
-                  <div key={location} className="flex justify-between items-center bg-green-50 px-4 py-3 rounded-lg">
-                    <dt className="text-gray-700 font-medium">{location}</dt>
-                    <dd className="font-bold text-green-600 text-lg">{count}</dd>
-                  </div>
+              {Object.entries(placementsByLocation)
+                .sort(([, a], [, b]) => b.length - a.length)
+                .map(([location, clients]) => (
+                  <PlacementBreakdownCard
+                    key={location}
+                    location={location}
+                    count={clients.length}
+                    clients={clients}
+                  />
                 ))}
             </dl>
           ) : (
