@@ -192,7 +192,7 @@ export default function EncounterHeatMap({ locations }: EncounterHeatMapProps) {
 
   if (mapError) {
     return (
-      <div className="h-96 bg-gray-100 rounded-lg flex items-center justify-center">
+      <div className="h-[600px] bg-gray-100 rounded-lg flex items-center justify-center">
         <div className="text-center px-6">
           <svg
             className="mx-auto h-12 w-12 text-gray-400 mb-4"
@@ -226,7 +226,7 @@ export default function EncounterHeatMap({ locations }: EncounterHeatMapProps) {
 
   if (locations.length === 0) {
     return (
-      <div className="h-96 bg-gray-100 rounded-lg flex items-center justify-center">
+      <div className="h-[600px] bg-gray-100 rounded-lg flex items-center justify-center">
         <div className="text-center">
           <svg
             className="mx-auto h-12 w-12 text-gray-400 mb-4"
@@ -258,7 +258,7 @@ export default function EncounterHeatMap({ locations }: EncounterHeatMapProps) {
 
   return (
     <div>
-      <div ref={mapContainer} className="h-96 rounded-lg" />
+      <div ref={mapContainer} className="h-[600px] rounded-lg" />
       <p className="text-sm text-gray-600 mt-3">
         Showing {locations.length} service interaction{locations.length !== 1 ? 's' : ''}{' '}
         on map. Click clusters to expand, click individual points for details.
