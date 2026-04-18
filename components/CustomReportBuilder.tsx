@@ -190,13 +190,13 @@ export default function CustomReportBuilder({
         return age
       }
 
-      // Helper function to get local date string (YYYY-MM-DD) from timestamp
-      // This properly handles timezone offsets by parsing the date and extracting local date
+      // Helper function to get date string (YYYY-MM-DD) from timestamp
+      // Uses UTC methods because date-only strings (YYYY-MM-DD) are parsed as UTC midnight
       const getLocalDateString = (dateStr: string): string => {
         const date = new Date(dateStr)
-        const year = date.getFullYear()
-        const month = String(date.getMonth() + 1).padStart(2, '0')
-        const day = String(date.getDate()).padStart(2, '0')
+        const year = date.getUTCFullYear()
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+        const day = String(date.getUTCDate()).padStart(2, '0')
         return `${year}-${month}-${day}`
       }
 
